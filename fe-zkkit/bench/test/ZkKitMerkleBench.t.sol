@@ -99,7 +99,7 @@ contract ZkKitMerkleBenchTest {
         cmdYul[3] = "yul";
         cmdYul[4] = "--optimize";
         cmdYul[5] = "--solc";
-        cmdYul[6] = "/usr/bin/solc";
+        cmdYul[6] = "/usr/local/bin/solc";
         cmdYul[7] = "--out-dir";
         cmdYul[8] = "out/fe/yul";
         cmdYul[9] = "--contract";

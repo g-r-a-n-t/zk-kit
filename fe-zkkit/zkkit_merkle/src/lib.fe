@@ -1,4 +1,3 @@
-pub use hash::{self, *}
+pub use hash::{self, Hasher, KeccakHasher, hash_step, hash2, hash2_at}
 pub use lean_imt::{self, *}
 pub use smt::{self, *}
-

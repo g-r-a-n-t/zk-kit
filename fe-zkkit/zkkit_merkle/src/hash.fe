@@ -1,14 +1,47 @@
 use std::evm::{alloc, ops}
 
-/// Hash two 32-byte words as `keccak256(left || right)`.
+/// Abstraction over hash functions — swap Keccak for Poseidon without rewriting.
+/// Impossible in Solidity.
+pub trait Hasher {
+    fn alloc_scratch() -> u256
+    fn hash2_at(ptr: u256, left: u256, right: u256) -> u256
+    fn hash2(left: u256, right: u256) -> u256
+}
+
+pub struct KeccakHasher {}
+
+impl Hasher for KeccakHasher {
+    fn alloc_scratch() -> u256 {
+        alloc(64)
+    }
+
+    fn hash2_at(ptr: u256, left: u256, right: u256) -> u256 {
+        ops::mstore(ptr, left)
+        ops::mstore(ptr + 32, right)
+        ops::keccak256(ptr, 64)
+    }
+
+    fn hash2(left: u256, right: u256) -> u256 {
+        let ptr = alloc(64)
+        KeccakHasher::hash2_at(ptr, left, right)
+    }
+}
+
+/// One Merkle proof step — replaces 12 copy-pasted blocks across the codebase.
+pub fn hash_step<H: Hasher>(scratch: u256, node: u256, sibling: u256, is_right_child: bool) -> u256 {
+    if is_right_child {
+        H::hash2_at(scratch, sibling, node)
+    } else {
+        H::hash2_at(scratch, node, sibling)
+    }
+}
+
+/// Convenience: keccak256(left || right) at a pre-allocated pointer.
 pub fn hash2_at(ptr: u256, left: u256, right: u256) -> u256 {
-    ops::mstore(ptr, left)
-    ops::mstore(ptr + 32, right)
-    ops::keccak256(ptr, 64)
+    KeccakHasher::hash2_at(ptr, left, right)
 }
 
+/// Convenience: keccak256(left || right).
 pub fn hash2(left: u256, right: u256) -> u256 {
-    let ptr = alloc(64)
-    hash2_at(ptr, left, right)
+    KeccakHasher::hash2(left, right)
 }
-
